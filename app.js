@@ -3,26 +3,12 @@ const app           = express();
 const bodyParser    = require("body-parser");
 const mongoose      = require("mongoose");
 const Campground    = require("./models/campground");
+const seedDB        = require("./seeds");
 
 mongoose.connect("mongodb://localhost/yelp_camp");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
-
-// Campground.create(
-//     {
-//         name: "Granite Hill", 
-//         image: "https://farm4.staticflickr.com/3539/3314646074_cb608e578b.jpg",
-//         description: "This is a huge granite hill, no bathrooms.  No water.  Beautiful granite!"
-        
-//     }, function(err, campground){
-//         if(err){
-//             console.log(err);
-//         } else {
-//             console.log("Newly created campground");
-//             console.log(campground);
-//         }
-//     });
-
+seedDB();
 
 app.get("/", function(req, res){
     res.render("landing");
@@ -66,7 +52,7 @@ app.get("/campgrounds/new", function(req, res){
 // Show route - shows more info about one campground
 app.get("/campgrounds/:id", function(req, res){
     // Find the campground with provided ID
-    Campground.findById(req.params.id, function(err, foundCampground){
+    Campground.findById(req.params.id).populate("comments").exec(function(err, foundCampground){
        if (err) {
            console.log(err);
        } else {
