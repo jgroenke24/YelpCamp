@@ -1,25 +1,27 @@
-const express           = require("express");
-const app               = express();
-const bodyParser        = require("body-parser");
-const mongoose          = require("mongoose");
-const passport          = require("passport");
-const LocalStrategy     = require("passport-local");
-const methodOverride    = require("method-override");
-const Campground        = require("./models/campground");
-const Comment           = require("./models/comment");
-const User              = require("./models/user");
-const seedDB            = require("./seeds");
+const express           = require("express"),
+      app               = express(),
+      bodyParser        = require("body-parser"),
+      mongoose          = require("mongoose"),
+      flash             = require("connect-flash"),
+      passport          = require("passport"),
+      LocalStrategy     = require("passport-local"),
+      methodOverride    = require("method-override"),
+      Campground        = require("./models/campground"),
+      Comment           = require("./models/comment"),
+      User              = require("./models/user"),
+      seedDB            = require("./seeds");
 
 // Requiring routes
 const campgroundRoutes = require("./routes/campgrounds"),
       commentRoutes    = require("./routes/comments"),
-      indexRoutes       = require("./routes/index");
+      indexRoutes      = require("./routes/index");
 
 mongoose.connect("mongodb://localhost/yelp_camp");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 app.use(methodOverride("_method"));
+app.use(flash());
 // seedDB();  // Seed the database
 
 // Passport configuration
@@ -36,6 +38,8 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use(function(req, res, next){
     res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
     next();
 });
 
