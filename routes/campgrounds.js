@@ -15,14 +15,30 @@ let geocoder = NodeGeocoder(options);
 
 // Index route - show all campgrounds
 router.get("/", function(req, res){
-    // Get all campgrounds from db
-    Campground.find({}, function(err, allCampgrounds){
-        if (err) {
-            console.log(err);
-        } else {
-            res.render("campgrounds/index", {campgrounds: allCampgrounds, page: "campgrounds"});
-        }
-    });
+    if (req.query.search) {
+        const regex = new RegExp(escapeRegex(req.query.search), "gi");
+        // Get all campgrounds from db
+        Campground.find({ name: regex }, function(err, allCampgrounds){
+            if (err) {
+                console.log(err);
+            } else {
+                if (allCampgrounds.length < 1) {
+                    req.flash("error", "No campgrounds match that query, please try again");
+                    return res.redirect("/campgrounds");
+                }
+                res.render("campgrounds/index", {campgrounds: allCampgrounds, page: "campgrounds"});
+            }
+        });
+    } else {
+        // Get all campgrounds from db
+        Campground.find({}, function(err, allCampgrounds){
+            if (err) {
+                console.log(err);
+            } else {
+                res.render("campgrounds/index", {campgrounds: allCampgrounds, page: "campgrounds"});
+            }
+        });
+    }
 });
 
 // Create route - add new campground to database
@@ -116,5 +132,9 @@ router.delete("/:id/", middleware.checkCampgroundOwnership, function(req, res){
         }
     });
 });
+
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^S|#\s]/g, "\\$&");
+}
 
 module.exports = router;
